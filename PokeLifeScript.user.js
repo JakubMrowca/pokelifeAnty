@@ -3,8 +3,8 @@
 // @version      5.18.0
 // @description  Dodatek do gry Pokelife
 // @match        https://gra.pokelife.pl/*
-// @downloadURL  https://github.com/krozum/pokelife/raw/master/PokeLifeScript.user.js
-// @updateURL    https://github.com/krozum/pokelife/raw/master/PokeLifeScript.user.js
+// @downloadURL  https://github.com/JakubMrowca/pokelifeAnty/raw/master/PokeLifeScript.user.js
+// @updateURL    https://github.com/JakubMrowca/pokelifeAnty/raw/master/PokeLifeScript.user.js
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @grant        GM_notification
@@ -13,8 +13,8 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.5.0/js/md5.min.js
 // @require      https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
 // @resource     color_picker_CSS  https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css
-// @resource     customCSS_global  https://raw.githubusercontent.com/krozum/pokelife/master/assets/global.css?ver=7
-// @resource     customCSS_style  https://raw.githubusercontent.com/krozum/pokelife/master/assets/style_0.css?ver=2
+// @resource     customCSS_global  https://raw.githubusercontent.com/JakubMrowca/pokelifeAnty/master/assets/global.css?ver=7
+// @resource     customCSS_style  https://raw.githubusercontent.com/JakubMrowca/pokelifeAnty/master/assets/style_0.css?ver=2
 // ==/UserScript==
 
 
