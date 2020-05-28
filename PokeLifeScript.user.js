@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         PokeLifeScript: AntyBan Edition
-// @version      5.18.0
+// @version      7.0.0
 // @description  Dodatek do gry Pokelife
 // @match        https://gra.pokelife.pl/*
 // @downloadURL  https://github.com/JakubMrowca/pokelifeAnty/raw/master/PokeLifeScript.user.js
@@ -81,17 +81,12 @@ var actionCommand = null;
 // **********************
 
 function requestDomainPost(url, data, callback) {
-    $.post(domain + url, { config: data }, function(result) {
-        callback == null ? "" : callback(result)
-    })
+   return;
 }
 
 function requestDomain(url, callback) {
-    $.ajax(domain + url)
-        .done(data => callback == null ? "" : callback(data))
-        .fail((xhr, status) => console.log('error:', status));
+    return;
 }
-requestDomain("pokelife/api/update_user.php?bot_version=" + GM_info.script.version + "&login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&poziom=" + $('button[data-original-title="Poziom Trenera Pokemon"]').html(), null);
 
 function updateConfig(config, callback) {
     console.log("------------");
@@ -153,32 +148,6 @@ function stopSound() {
 // loggery
 //
 // **********************
-
-function updateEvent(text, eventTypeId, dzicz) {
-    if (dzicz != null) {
-        requestDomain("pokelife/api/update_event.php?login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&text=" + text + "&event_type_id=" + eventTypeId + "&dzicz=" + dzicz + "&time=" + Date.now(), function(response) {
-            console.log("updateEvent: " + eventTypeId + " => " + text);
-        })
-    } else {
-        requestDomain("pokelife/api/update_event.php?login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&text=" + text + "&event_type_id=" + eventTypeId + "&time=" + Date.now(), function(response) {
-            console.log("updateEvent: " + eventTypeId + " => " + text);
-        })
-    }
-}
-
-function updateStats(name, value) {
-    requestDomain("pokelife/api/update_stats.php?login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&stats_name=" + name + "&value=" + value + "&time=" + Date.now(), function(response) {
-        console.log("UpdateStats: " + name + " => " + value);
-    })
-}
-
-function updateStatsDoswiadczenie(json) {
-    requestDomain("pokelife/api/update_stats_doswiadczenie.php?login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&json=" + json + "&time=" + Date.now(), function(response) {
-        console.log("updateStatsDoswiadczenie: " + json);
-    })
-}
-
-
 // **********************
 //
 // nadpisanie glownych funkcji jQuery i funkcji gry
@@ -494,187 +463,6 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initSkins() {
-
-        var globalCSS = GM_getResourceText("customCSS_global");
-        GM_addStyle(globalCSS);
-
-        var colorPickerCSS = GM_getResourceText("color_picker_CSS");
-        GM_addStyle(colorPickerCSS);
-
-        var newCSS = GM_getResourceText("customCSS_style");
-        GM_addStyle(newCSS);
-
-        if (config.skinStyle == 0) {
-            $(':root').get(0).style.setProperty("--customStyle-background", config.customStyleBackground);
-            $(':root').get(0).style.setProperty("--customStyle-tabs", config.customStyleTabs);
-            $(':root').get(0).style.setProperty("--customStyle-font", config.customStyleFont);
-        } else {
-            var style = styles[0];
-            $.each(styles, function(key, value) {
-                if (value.style_id == config.skinStyle) {
-                    style = value;
-                }
-            });
-            $(':root').get(0).style.setProperty("--customStyle-background", style.bg);
-            $(':root').get(0).style.setProperty("--customStyle-tabs", style.tabs);
-            $(':root').get(0).style.setProperty("--customStyle-font", style.font);
-        }
-
-        $('body').append('<div id="changeStyle" class="plugin-button" style="border-radius: 4px;position: fixed;cursor: pointer;bottom: 10px;left: 10px;font-size: 19px;text-align: center;width: 30px;height: 30px;line-height: 35px;z-index: 9999;"><icon</div>');
-
-        $(document).on('click', '.changeStyleTo', function() {
-            config.skinStyle = $(this).data('id');
-            updateConfig(config, function() { location.reload() });
-        });
-
-        $(document).on("click", "#changeStyle", function() {
-            if ($('#styleSettings').length > 0) {
-                $('#styleSettings').remove();
-            } else {
-                $('body').append('<div id="styleSettings" style="padding: 10px; position:fixed; bottom: 52px; left: 0px; width: 400px; background: white; opacity: 1; border: 7px solid #d6e9c6; z-index: 9999; font-weight: 600"></div>');
-                $('#styleSettings').append('<div class="row"><div class="col-sm-6 leftRow">Gotowe style:<table></table></div><div class="col-sm-6 rightRow">Kreator styli:<table></table></div></div>');
-
-                $.each(styles, function(key, value) {
-                    $('#styleSettings .leftRow table').append('<tr><td> <div class="changeStyleTo" data-id="' + value.style_id + '" style="background:linear-gradient(90deg, ' + value.bg + ' 50%, ' + value.tabs + ' 50%); border-radius: 4px; cursor: pointer;font-size: 19px;text-align: center;width: 30px;height: 30px;line-height: 35px;z-index: 9999;"></div> </td><td style="padding: 10px"> ' + value.nazwa + ' </td></tr>');
-                });
-
-                $('#styleSettings .rightRow table').append(`
-<tr>
-<td> <div id="color-picker" /> </td>
-<td style="padding: 10px"> Tło </td>
-</tr>`);
-
-                const pickr = Pickr.create({
-                    el: '#color-picker',
-                    theme: 'nano',
-                    default: config.customStyleBackground,
-
-                    components: {
-
-                        preview: true,
-                        opacity: true,
-                        hue: true,
-
-                        interaction: {
-                            input: true,
-                            save: true
-                        }
-                    }
-                });
-
-                pickr.on('save', (color, instance) => {
-                    config.customStyleBackground = color.toHEXA().toString();
-                    updateConfig(config);
-                })
-
-                pickr.on('change', (color, instance) => {
-                    $(':root').get(0).style.setProperty("--customStyle-background", color.toHEXA().toString());
-                })
-
-                pickr.on('hide', (color, instance) => {
-                    if (config.skinStyle == 0) {
-                        $(':root').get(0).style.setProperty("--customStyle-background", config.customStyleBackground);
-                    } else {
-                        $(':root').get(0).style.setProperty("--customStyle-background", style.bg);
-                    }
-                })
-
-                $('#styleSettings .rightRow table').append(`
-<tr>
-<td> <div id="color-picker2" /> </td>
-<td style="padding: 10px"> Paski </td>
-</tr>`);
-
-                const pickr2 = Pickr.create({
-                    el: '#color-picker2',
-                    theme: 'nano',
-                    default: config.customStyleTabs,
-
-                    components: {
-
-                        preview: true,
-                        opacity: true,
-                        hue: true,
-
-                        interaction: {
-                            input: true,
-                            save: true
-                        }
-                    }
-                });
-
-                pickr2.on('save', (color, instance) => {
-                    config.customStyleTabs = color.toHEXA().toString();
-                    updateConfig(config);
-                })
-
-                pickr2.on('change', (color, instance) => {
-                    $(':root').get(0).style.setProperty("--customStyle-tabs", color.toHEXA().toString());
-                })
-
-                pickr2.on('hide', (color, instance) => {
-                    if (config.skinStyle == 0) {
-                        $(':root').get(0).style.setProperty("--customStyle-tabs", config.customStyleTabs);
-                    } else {
-                        $(':root').get(0).style.setProperty("--customStyle-tabs", style.tabs);
-                    }
-                })
-
-                $('#styleSettings .rightRow table').append(`
-<tr>
-<td> <div id="color-picker3" /> </td>
-<td style="padding: 10px"> Czcionka </td>
-</tr>`);
-
-                const pickr3 = Pickr.create({
-                    el: '#color-picker3',
-                    theme: 'nano',
-                    default: config.customStyleFont,
-
-                    components: {
-
-                        preview: true,
-                        opacity: true,
-                        hue: true,
-
-                        interaction: {
-                            input: true,
-                            save: true
-                        }
-                    }
-                });
-
-                pickr3.on('save', (color, instance) => {
-                    config.customStyleFont = color.toHEXA().toString();
-                    updateConfig(config);
-                })
-
-                pickr3.on('change', (color, instance) => {
-                    $(':root').get(0).style.setProperty("--customStyle-font", color.toHEXA().toString());
-                })
-
-                pickr3.on('hide', (color, instance) => {
-                    if (config.skinStyle == 0) {
-                        $(':root').get(0).style.setProperty("--customStyle-font", config.customStyleFont);
-                    } else {
-                        $(':root').get(0).style.setProperty("--customStyle-font", style.font);
-                    }
-                })
-
-                $('#styleSettings .rightRow').append(`<div id="confirmCustomStyle" style="height: 30px; width: 136px; margin: 5px 0px; color: #FFF; background-color: #4285f4; border-radius: 4px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: 400"> Zastosuj </div>`);
-
-                $(document).on('click', '#confirmCustomStyle', function() {
-                    config.skinStyle = 0;
-                    updateConfig(config, function() { location.reload() });
-                });
-
-
-            }
-        });
-    }
-    initSkins();
-
 
 
     // **********************
@@ -684,41 +472,7 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initPodmianaObrazkow() {
-
-        onReloadMain(function() {
-            if (this.find('img[src="pokemony/srednie/ms94.png"]').length > 0) {
-                this.find('img[src="pokemony/srednie/ms94.png"]').each(function() {
-                    var $img = $(this);
-                    var imgsrc = $img.attr('src');
-                    $img.attr('src', "pokemony/srednie/s94.png");
-                })
-            }
-            if (this.find('img[src="pokemony/ms94.png"]').length > 0) {
-                this.find('img[src="pokemony/ms94.png"]').each(function() {
-                    var $img = $(this);
-                    var imgsrc = $img.attr('src');
-                    $img.attr('src', "pokemony/s94.png");
-                })
-            }
-        })
-
-        onReloadSidebar(function() {
-            if (this.find('img[src="pokemony/srednie/ms94.png"]').length > 0) {
-                this.find('img[src="pokemony/srednie/ms94.png"]').each(function() {
-                    var $img = $(this);
-                    var imgsrc = $img.attr('src');
-                    $img.attr('src', "pokemony/srednie/s94.png");
-                })
-            }
-        })
-        $.get('inc/stan.php', function(data) { $("#sidebar").html(data); });
-    }
-    if (md5($('#wyloguj').parent().parent().html().split("<div")[0].trim()) == "bac40cb0ec0198e3a2c22657f6786c41") {
-        initPodmianaObrazkow();
-    }
-
-
+  
 
     // **********************
     //
@@ -1824,10 +1578,6 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initVersionInfo() {
-        $('body').append('<div id="newVersionInfo" style="border-radius: 4px; position: fixed; cursor: pointer; bottom: 10px; right: 20px; font-size: 19px; text-align: center; width: auto; height: 30px; line-height: 35px; z-index: 9998; text-align: right;"><a style="color: yellow !important;text-decoration:none;" target="_blank" href="https://github.com/krozum/pokelife#user-content-changelog">' + 'v' + GM_info.script.version + '</a></div>');
-    };
-    initVersionInfo();
 
 
 
@@ -1838,34 +1588,7 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initAutouzupelnianieFormularzy() {
-
-        $(document).on("click", "#plecak-jagody .thumbnail-plecak, .thumbnail-plecak[data-target='#plecak-11'], .thumbnail-plecak[data-target='#plecak-14'], .thumbnail-plecak[data-target='#plecak-15'], .thumbnail-plecak[data-target='#plecak-8'], .thumbnail-plecak[data-target='#plecak-7'], .thumbnail-plecak[data-target='#plecak-19'], .thumbnail-plecak[data-target='#plecak-16']", function(event) {
-            var id = $(this).data("target");
-            var ilosc = $(this).find("h5").html().split(" ")[0];
-            $(id + ' input[name="ilosc"]').val(ilosc);
-        });
-
-        onReloadMain(function() {
-            if (this.find('.panel-heading').html() === "Centrum wymiany Punktów Zasług") {
-                var dostepne = Number(this.find('.panel-body big').html().split(" ")[0]);
-                var cena_zakupu = Number(this.find('#target0').parent().find("b").html().split("¥")[0].replace(/\./g, ''));
-                var ilosc_yenow = Number($('a[href="http://pokelife.pl/pokedex/index.php?title=Pieniądze"]').parent().html().split("</a>")[1].split("<a")[0].replace(/\./g, ''));
-
-                var ile_moge_kupic = Number((ilosc_yenow / cena_zakupu).toFixed());
-
-                if (ile_moge_kupic > dostepne) {
-                    ile_moge_kupic = dostepne;
-                }
-
-                console.log('PokeLifeScript: dostępnych PZ do kupienia: ' + ile_moge_kupic);
-                this.find('#target0').attr("value", ile_moge_kupic);
-            }
-        })
-    }
-    initAutouzupelnianieFormularzy();
-
-
+   
 
     // **********************
     //
@@ -1873,62 +1596,6 @@ function initPokeLifeScript() {
     // Funkcja pokazująca ostatnie 3 złapane shiny na rynku
     //
     // **********************
-
-    var pokemonPriceData;
-
-    function initShinyWidget() {
-        var shinyWidget;
-
-        function refreshShinyWidget() {
-            var api = domain + "pokelife/api/get_shiny.php?login=" + $('#wyloguj').parent().parent().html().split("<div")[0].trim() + "&region=" + region;
-            $.getJSON(api, {
-                format: "json"
-            }).done(function(data) {
-                var html = '<div class="panel panel-primary"><div class="panel-heading">Ostatnio spotkane shiny<div class="navbar-right"><span id="refreshShinyWidget" style="color: white; top: 4px; font-size: 16px; right: 3px;" class="glyphicon glyphicon-refresh" aria-hidden="true"></span></div></div><table class="table table-striped table-condensed"><tbody><tr>';
-                $.each(data.list, function(key, value) {
-                    var wystepowanie = "";
-                    var nazwa = "";
-                    if (pokemonData != undefined) {
-                        wystepowanie = pokemonData[value['pokemon_id']].region + ", " + pokemonData[value['pokemon_id']].wystepowanie_shiny;
-                        nazwa = pokemonData[value['pokemon_id']].name;
-                    }
-
-                    var id = Number(value['pokemon_id']);
-                    if (id > 1000) {
-                        id = "" + id;
-                        id = Number(id.substring(1));
-                    }
-
-                    html = html + "<td data-toggle='tooltip' data-html='true' data-placement='top' title='' data-original-title='Spotkany : " + value['creation_date'] + "<br>" + wystepowanie + "<br>Cena w hodowli: " + pokemonPriceData[id] + " §' style='text-align: center;'><a target='_blank' href='https://pokelife.pl/pokedex/index.php?title=" + nazwa + "'><img src='pokemony/srednie/s" + value['pokemon_id'] + ".png' style='width: 40px; height: 40px;'></a></td>";
-                });
-                html = html + '</tr></tbody></table></div>';
-                shinyWidget = html;
-                $.get('inc/stan.php', function(data) { $("#sidebar").html(data); });
-            });
-        }
-        refreshShinyWidget();
-
-        onReloadSidebar(function() {
-            this.find(".panel-heading:contains('Drużyna')").parent().before(shinyWidget);
-            $('[data-toggle="tooltip"]').tooltip();
-        })
-
-        $(document).on("click", "#refreshShinyWidget", function(event) {
-            refreshShinyWidget();
-        });
-
-        var intervalShiny = setInterval(function() {
-            refreshShinyWidget();
-        }, 300000);
-    }
-
-    var api = "https://raw.githubusercontent.com/krozum/pokelife/master/pokemonPriceData.json";
-    $.getJSON(api, {
-        format: "json"
-    }).done(function(data) {
-        pokemonPriceData = data;
-        initShinyWidget();
-    });
 
 
 
@@ -2152,12 +1819,7 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initStatystykiLink() {
-        $('body').append('<a id="PokeLifeScriptStats" style="color: #333333 !important;text-decoration:none;" target="_blank" href="' + domain + 'pokelife/stats/"><div class="plugin-button" style="border-radius: 4px;position: fixed;cursor: pointer;top: 15px;left: 190px;font-size: 19px;text-align: center;width: 100px;height: 30px;line-height: 35px;z-index: 9998;text-align: center;line-height: 30px;color: #333333;">Statystyki</div></a>');
-        $("#PokeLifeScriptStats").attr("href", domain + "pokelife/stats/?login=" + md5($('#wyloguj').parent().parent().html().split("<div")[0].trim()));
-    }
-    initStatystykiLink();
-
+ 
 
 
     // **********************
@@ -2177,137 +1839,7 @@ function initPokeLifeScript() {
     // 10 - event w dziczy
     // **********************
 
-    function initLogger() {
-
-        var aktualnyPokemonDzicz;
-
-        onReloadMain(function(url) {
-            var dzicz = null;
-            if (url != null && url.indexOf('miejsce=') != -1) {
-                dzicz = url.split('miejsce=')[1].split('&')[0];
-            }
-            var DATA = this;
-
-            if (url == "gra/aktywnosc.php?p=praca&przerwij") {
-                if (DATA.find("p.alert-success:contains('Otrzymujesz wynagrodzenie w wysokości')").length > 0) {
-                    var yeny = DATA.find("p.alert-success b").html().split(' ')[0].replace(/\./g, '');
-                    updateStats("zarobek_z_pracy", yeny);
-                }
-            }
-
-            if (DATA.find(".panel-heading:contains('Łapanie Jajka')").length == 0 && (DATA.find('img[src="images/event/jajko1.png"]').length > 0 || DATA.find('img[src="images/event/jajko2.png"]').length > 0 || DATA.find('img[src="images/event/jajko3.png"]').length > 0)) {
-                console.log('PokeLifeScript: spotkano jajko');
-                updateEvent("Spotkano jajko", 10, dzicz);
-            } else if (DATA.find("p.alert-info:contains('Niestety, tym razem nie spotkało cię nic interesującego.')").length > 0) {
-                console.log('PokeLifeScript: pusta wyprawa');
-                updateEvent("Niestety, tym razem nie spotkało cię nic interesującego", 1, dzicz);
-            } else if (DATA.find("p.alert-success:contains('pojedynek')").length > 0) {
-                console.log('PokeLifeScript: walka z trenerem');
-                updateStats("walki_z_trenerami", 1);
-                var pd = 0;
-                var json = "";
-                if (DATA.find(".alert-success:not(:contains('Moc odznaki odrzutowca sprawia'))").length > 2) {
-                    $.each(DATA.find(".alert-success:not(:contains('Moc odznaki odrzutowca sprawia')):nth(2) b").html().split("PD<br>"), function(key, value) {
-                        if (value != "") {
-                            pd = pd + Number(value.split("+")[1]);
-                            json = json + '"' + value.split("+")[0].trim() + '":"' + Number(value.split("+")[1]) + '",';
-                        }
-                    });
-                    pd = pd.toFixed(2);
-                    updateStats("zarobki_z_trenerow", DATA.find(".alert-success:not(:contains('Moc odznaki odrzutowca sprawia')):nth(1) b").html().split(" ¥")[0]);
-                    updateStats("zdobyte_doswiadczenie", pd);
-                    updateEvent("Na twojej drodze staje inny trener pokemon, który wyzywa Cię na pojedynek. Wygrywasz <b>" + DATA.find(".alert-success:not(:contains('Moc odznaki odrzutowca sprawia')):nth(1) b").html().split(" ¥")[0] + "</b> ¥. Zdobyte doświadczenie: <b>" + pd + "</b>", 2, dzicz);
-                    updateStatsDoswiadczenie("{" + json.substring(0, json.length - 1) + "}");
-                } else {
-                    $.each(DATA.find(".alert-success:not(:contains('Moc odznaki odrzutowca sprawia')):nth(1) b").html().split("PD<br>"), function(key, value) {
-                        if (value != "") {
-                            pd = pd + Number(value.split("+")[1]);
-                            json = json + '"' + value.split("+")[0].trim() + '":"' + Number(value.split("+")[1]) + '",';
-                        }
-                    });
-                    pd.toFixed(2);
-                    updateStats("zdobyte_doswiadczenie", pd);
-                    updateEvent("Na twojej drodze staje inny trener pokemon, który wyzywa Cię na pojedynek ale niestety go przegrywasz. Zdobyte doświadczenie: <b>" + pd + "</b>", 3, dzicz);
-                    updateStatsDoswiadczenie("{" + json.substring(0, json.length - 1) + "}");
-                }
-            } else if (DATA.find('h2:contains("Wybierz Pokemona")').length > 0) {
-                console.log('PokeLifeScript: spotkany pokemon');
-                updateEvent("Spotkany pokemon <b>" + DATA.find('.panel-primary i').html() + "</b>", 4, dzicz);
-                aktualnyPokemonDzicz = DATA.find('.panel-primary i').html();
-            } else if (DATA.find("h2:contains('Złap Pokemona')").length > 0) {
-                console.log('PokeLifeScript: pokemon pokonany');
-                updateStats("wygranych_walk_w_dziczy", 1);
-                updateStats("zdobyte_doswiadczenie", DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0]);
-                updateStatsDoswiadczenie('{"' + DATA.find('.panel-body b b').html() + '":"' + DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0] + '"}');
-                updateEvent("Wygrałeś walke z <b>" + aktualnyPokemonDzicz + "</b>. Zdobyłeś <b>" + DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0] + "</b> punktów doświadczenia", 5, dzicz);
-            } else if (DATA.find("h2:contains('Pokemon Ucieka')").length > 0) {
-                console.log('PokeLifeScript: pokemon pokonany ale ucieka');
-                updateStats("wygranych_walk_w_dziczy", 1);
-                updateStats("zdobyte_doswiadczenie", DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0]);
-                updateStatsDoswiadczenie('{"' + DATA.find('.panel-body b b').html() + '":"' + DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0] + '"}');
-                updateEvent("Wygrałeś walke z <b>" + aktualnyPokemonDzicz + "</b>. Zdobyłeś <b>" + DATA.find('p.alert-success:first').html().split("Zwycięstwo! ")[1].split("</b> +")[1].split(' PD')[0] + "</b> punktów doświadczenia", 5, dzicz);
-            } else if (DATA.find(".panel-body > p.alert-success:contains('Udało Ci się złapać')").length > 0) {
-                console.log('PokeLifeScript: pokemon złapany');
-                updateEvent("Udało ci sie złapać <b>" + aktualnyPokemonDzicz + "</b>.", 7, dzicz);
-                updateStats("zlapanych_pokemonow", 1);
-                if (DATA.find('p.alert-success:nth(1):contains("nie masz już miejsca")').length > 0) {
-                    var zarobek = DATA.find('p.alert-success:nth(1):contains("nie masz już miejsca") strong').html().split(" ")[0].replace(/\./g, '');
-                    updateStats("zarobki_z_hodowli", zarobek);
-                }
-            } else if (DATA.find(".panel-body > p.alert-danger:contains('uwolnił')").length > 0) {
-                console.log('PokeLifeScript: pokemon sie uwolnił');
-                updateStats("niezlapanych_pokemonow", 1);
-                updateEvent("<b>" + aktualnyPokemonDzicz + " się uwolnił.", 8, dzicz);
-            } else if (DATA.find(".panel-body > p.alert-danger:contains('Przegrana')").length > 0) {
-                console.log('PokeLifeScript: przegrana walka');
-                updateStats("przegranych_walk_w_dziczy", 1);
-                updateEvent("Przegrana walka z <b>" + aktualnyPokemonDzicz + "</b>. Musisz uciekać. ", 6, dzicz);
-            } else if (DATA.find(".panel-body > p.alert-success").length > 0 && DATA.find('.panel-heading').html() == 'Dzicz - wyprawa') {
-                console.log('PokeLifeScript: event w dziczy');
-                if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first').html() != undefined && DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first').html().indexOf("Jagód") != -1) {
-                    if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b').html() == "Czerwonych Jagód") {
-                        updateStats("zebrane_czerwone_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b').html() == "Niebieskich Jagód") {
-                        updateStats("zebrane_niebieskie_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b').html() == "Fioletowych Jagód") {
-                        updateStats("zebrane_fioletowe_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b').html() == "Żółtych Jagód") {
-                        updateStats("zebrane_zolte_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b').html() == "Białych Jagód") {
-                        updateStats("zebrane_biale_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html() == "Czerwonych Jagód") {
-                        updateStats("zebrane_czerwone_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html() == "Niebieskich Jagód") {
-                        updateStats("zebrane_niebieskie_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html() == "Fioletowych Jagód") {
-                        updateStats("zebrane_fioletowe_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html() == "Żółtych Jagód") {
-                        updateStats("zebrane_zolte_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html() == "Białych Jagód") {
-                        updateStats("zebrane_biale_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else if (DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html().indexOf("Jagód") != -1) {
-                        updateStats("zebrane_inne_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(0)').html());
-                    } else {
-                        updateStats("zebrane_inne_jagody", DATA.find('p.alert-success:not(:contains("Moc odznaki odrzutowca sprawia")):first b:nth(1)').html());
-                    }
-                    updateEvent(DATA.find('.panel-body > p.alert-success').html(), 9, dzicz);
-                } else if (DATA.find('.panel-heading').html() == 'Dzicz - wyprawa') {
-                    updateEvent(DATA.find('.panel-body > p.alert-success').html(), 10, dzicz);
-                }
-            } else if (DATA.find(".panel-body > p.alert-info").length > 0 && DATA.find('.panel-heading').html() == 'Dzicz - wyprawa') {
-                console.log('PokeLifeScript: event w dziczy');
-                updateEvent(DATA.find('.panel-body > p.alert-info').html(), 10, dzicz);
-            } else if (DATA.find(".panel-body > p.alert-warning").length > 0 && DATA.find('.panel-heading').html() == 'Dzicz - wyprawa') {
-                console.log('PokeLifeScript: event w dziczy');
-                updateEvent(DATA.find('.panel-body > p.alert-warning').html(), 10, dzicz);
-            }
-        })
-    }
-    initLogger();
-
-
-
-    // **********************
+  
     //
     // initWbijanieSzkoleniowca
     // Funkcja automatycznie przechodząca po przechowalni i zwiększaniu treningów do miniumum 7 w każdą statystyke
@@ -2413,141 +1945,7 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initChat() {
-        window.localStorage.max_chat_id = 0;
-
-        $('#chat-inner > ul').append('<li role="presentation" data-toggle="tooltip" data-placement="top" title="" data-original-title="Pokój widoczny wyłącznie dla użytkowników bota"><a href="#room-99999" aria-controls="room-99999" role="tab" data-toggle="tab" class="showRoomBot" data-room="99999" aria-expanded="true">Bot</a></li>');
-        $('#shout_list').after('<ol style="list-style: none; display: none; margin: 0; padding: 0" id="bot_list"></ol>');
-        $('#shoutbox-panel-footer').after('<div style="display: none;background: none;" id="shoutbox-bot-panel-footer" class="panel-footer input-group"><textarea id="shout_bot_message" maxlength="255" style="resize: none; overflow: hidden;height: 34px" type="text" class="form-control" placeholder="Wiadomość" name="message"></textarea> <span class="input-group-btn"> <button id="shout_bot_button" class="btn btn-primary" type="button">Wyślij</button> </span> </div>');
-
-        $('#shout_bot_message').on('keydown', function(e) {
-            if (e.which == 13) {
-                e.preventDefault();
-                wyslij();
-            }
-        }).on('input', function() {
-            $(this).height(1);
-            var totalHeight = $(this).prop('scrollHeight') - parseInt($(this).css('padding-top')) - parseInt($(this).css('padding-bottom'));
-            $(this).height(totalHeight);
-        });
-
-        $('.showRoomBot').click(function() {
-            $('#shout_list').hide();
-            $('#shoutbox-panel-footer').hide();
-            $('#bot_list').show();
-            $('#shout_refresher').hide();
-            $('#shoutbox-bot-panel-footer').show();
-
-            if ($('#shout_refresher:contains("tymczasowo wyłączony")').length > 0 && $('#bot_list li').length == 0) {
-                $('#shouts').append("<button style='text-align: center; margin: 0 auto; display: block; margin-top: 20px;' class='btn btn-primary' id='zaloguj_czat_bot'>Zaloguj</button>");
-            }
-            var objDiv = document.getElementById("shouts");
-            objDiv.scrollTop = objDiv.scrollHeight;
-        });
-
-        $('.showRoom').click(function() {
-            $('#bot_list').hide();
-            $('#shout_refresher').show();
-            $('#shoutbox-bot-panel-footer').hide();
-            $('#shout_list').show();
-            $('#zaloguj_czat_bot').remove();
-            $('#shoutbox-panel-footer').show();
-        });
-
-        var interval;
-        var lastDate2;
-
-        $(document).on('click', '#zaloguj_chat,#zaloguj_czat_bot', function(e) {
-            $('#zaloguj_czat_bot').remove();
-            var url = domain + 'pokelife/api/get_czat.php?czat_id=' + 0;
-            $.getJSON(url, {
-                format: "json"
-            }).done(function(data) {
-                if (data['list'] != undefined) {
-                    var messages = data['list'].reverse();
-                    console.log(messages);
-                    var lastDate = null;
-                    $.each(messages, function(key, value) {
-                        var d = new Date(value["creation_date"]);
-                        if (lastDate != null && d.getDay() !== lastDate.getDay()) {
-                            var tzoffset = (new Date()).getTimezoneOffset() * 60000;
-                            var localISOTime = (new Date(d - tzoffset)).toISOString().slice(0, 10);
-                            $("#bot_list").append('<li style="word-break: break-word; padding: 1px 5px 1px 5px; font-family: Arial; font-size: 14px; text-align: center; color: #777; border-radius: 3px; background: #00000008;">' + localISOTime + '</li>')
-                        }
-                        if (value['false_login'] == null) {
-                            $("#bot_list").append('<li style="word-break: break-word;text-align: center;border-bottom: 2px dashed #aa1c00;padding-top: 3px;padding-bottom: 3px;color: #aa1c00;font-size: 18px;font-family: Arial;"><span>' + value["message"] + '</span></li>');
-                        } else {
-                            $("#bot_list").append('<li style="word-break: break-word;padding: 1px 5px 1px 5px;font-family: Georgia, \'Times New Roman\', Times, serif; font-size: 14px; ' + (value["message"].indexOf(window.localStorage.falseLogin) >= 0 ? "background: #fbf1a763; border-radius: 3px;" : "") + '"><span class="shout_post_date">(' + value["creation_date"].split(" ")[1] + ') </span><span class="shout_post_name2" style="cursor: pointer">' + (value["avatar"] != "" ? '<img src="' + value["avatar"] + '" style=" width: 15px; margin-right: 3px; ">' : "") + value["false_login"] + '</span>: ' + value["message"] + '</li>');
-                        }
-                        window.localStorage.max_chat_id = value["czat_id"];
-                        lastDate = new Date(value["creation_date"]);
-                        lastDate2 = new Date(value["creation_date"]);
-                    });
-                    $('#shouts').animate({ scrollTop: $('#shouts').prop("scrollHeight") }, 500);
-                }
-
-                if (interval == undefined) {
-                    interval = setInterval(function() {
-                        var url = domain + 'pokelife/api/get_czat.php?czat_id=' + window.localStorage.max_chat_id;
-                        $.getJSON(url, {
-                            format: "json"
-                        }).done(function(data) {
-                            if (data['list'] != undefined) {
-                                var messages = data['list'].reverse();
-                                $.each(messages, function(key, value) {
-                                    var d = new Date(value["creation_date"]);
-                                    if (lastDate2 != null && d.getDay() !== lastDate2.getDay()) {
-                                        var tzoffset = (new Date()).getTimezoneOffset() * 60000;
-                                        var localISOTime = (new Date(d - tzoffset)).toISOString().slice(0, 10);
-                                        $("#bot_list").append('<li style="word-break: break-word; padding: 1px 5px 1px 5px; font-family: Arial; font-size: 14px; text-align: center; color: #777; border-radius: 3px; background: #00000008;">' + localISOTime + '</li>')
-                                    }
-                                    if (value['false_login'] == null) {
-                                        $("#bot_list").append('<li style="word-break: break-word;text-align: center;border-bottom: 2px dashed #aa1c00;padding-top: 3px;padding-bottom: 3px;color: #aa1c00;font-size: 18px;font-family: Arial;"><span>' + value["message"] + '</span></li>');
-                                    } else {
-                                        $("#bot_list").append('<li style="word-break: break-word;padding: 1px 5px 1px 5px;font-family: Georgia, \'Times New Roman\', Times, serif; font-size: 14px; ' + (value["message"].indexOf(window.localStorage.falseLogin) >= 0 ? "background: #fbf1a763; border-radius: 3px;" : "") + '"><span class="shout_post_date">(' + value["creation_date"].split(" ")[1] + ') </span><span class="shout_post_name2" style="cursor: pointer">' + (value["avatar"] != "" ? '<img src="/images/stow/deko/176.png" style=" width: 15px; margin-right: 3px; ">' : "") + value["false_login"] + '</span>: ' + value["message"] + '</li>');
-                                    }
-                                    window.localStorage.max_chat_id = value["czat_id"];
-                                    lastDate2 = new Date(value["creation_date"]);
-                                });
-                                $('#shouts').animate({ scrollTop: $('#shouts').prop("scrollHeight") }, 500);
-                            }
-                        });
-                    }, 2500);
-                }
-            })
-        })
-
-        function wyslij() {
-            var msg = $("#shout_bot_message").val();
-            var value = $("#shout_button").val();
-            if (msg.length > 255) {
-                alert("Wiadomość za długa o " + (msg.length - 255));
-            } else {
-                $("#shout_button").val('Wysyłanie...');
-
-                var url = domain + 'pokelife/api/update_czat.php';
-                $.getJSON(url, {
-                    format: "json",
-                    message: msg,
-                    login: $('#wyloguj').parent().parent().html().split("<div")[0].trim()
-                }).done(function(data) {
-                    $("#shout_bot_button").val(value);
-                    $("#shout_bot_message").val('').trigger('input');
-                });
-            }
-        }
-
-        $("#shout_bot_button").click(function() {
-            wyslij();
-        });
-
-        $(document).on("click", ".shout_post_name2", function() {
-            var name = $(this).text();
-            $("#shout_bot_message").val($("#shout_bot_message").val() + "@" + name);
-        });
-    }
-    initChat();
-
+   
 
 
     // **********************
@@ -2557,28 +1955,7 @@ function initPokeLifeScript() {
     //
     // **********************
 
-    function initPokemonyLiga() {
-        onReloadMain(function() {
-            var THAT = this;
-            if (this.find('.panel-heading').html() === "Liga - pojedynek") {
-                $.each(this.find('.pokazpoka[data-ignoruj-ukrycie="1"]'), function(index, item) {
-                    var pokemon_id = $(item).data('id-pokemona');
-                    var nazwa = $(item).val();
-                    var gracz_id = THAT.find('input[name="walcz"]').val();
-                    var login = THAT.find('big:nth(1)').html();
-                    var url = domain + 'pokelife/api/update_pokemon_gracza.php';
-                    $.getJSON(url, {
-                        pokemon_id: pokemon_id,
-                        gracz_id: gracz_id,
-                        login: login,
-                        nazwa: nazwa,
-                    }).done(function(data) {});
-                })
-            }
-        })
-    }
-    initPokemonyLiga();
-
+   
 
 
     // **********************
@@ -3054,150 +2431,7 @@ data-zas="` + (1 * $(DATA).find('input[name="nazwa_full"][value="Białe Jagody"]
     //
     // **********************
 
-    function initRozbudowanyOpisDziczy() {
-        var d = new Date();
-        d.setMinutes(d.getMinutes() - 21);
-        var today = d.getFullYear() + "" + d.getMonth() + "" + d.getDate();
-        var kolekcjaData = new Object()
-        var kolekcjaDnia;
-
-        if (window.localStorage.kolekcjaDnia == undefined) {
-            window.localStorage.kolekcjaDnia = "";
-        }
-        var login = $('#wyloguj').parent().parent().html().split("<div")[0].trim();
-
-        onReloadMain(function() {
-            if (this.find('.panel-heading').html() === "Kolekcja") {
-                kolekcjaData.data = today;
-                kolekcjaData.login = login;
-
-                kolekcjaData.kanto = new Object();
-                this.find('#kolekcja-1 div').each(function(index, value) {
-                    kolekcjaData.kanto["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.johto = new Object();
-                this.find('#kolekcja-2 div').each(function(index, value) {
-                    kolekcjaData.johto["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.hoenn = new Object();
-                this.find('#kolekcja-3 div').each(function(index, value) {
-                    kolekcjaData.hoenn["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.sinnoh = new Object();
-                this.find('#kolekcja-4 div').each(function(index, value) {
-                    kolekcjaData.sinnoh["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.unova = new Object();
-                this.find('#kolekcja-5 div').each(function(index, value) {
-                    kolekcjaData.unova["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.kalos = new Object();
-                this.find('#kolekcja-6 div').each(function(index, value) {
-                    kolekcjaData.kalos["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-                window.localStorage.kolekcjaDnia = JSON.stringify(kolekcjaData);
-                console.log("Reloaded");
-                initPasek();
-            }
-        })
-
-        if (!window.localStorage.kolekcjaDnia.includes(today) || !window.localStorage.kolekcjaDnia.includes(login)) {
-            $.get('gra/kolekcja.php', function(data) {
-                kolekcjaData.data = today;
-                kolekcjaData.login = login;
-
-                kolekcjaData.kanto = new Object();
-                $(data).find('#kolekcja-1 div').each(function(index, value) {
-                    kolekcjaData.kanto["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.johto = new Object();
-                $(data).find('#kolekcja-2 div').each(function(index, value) {
-                    kolekcjaData.johto["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.hoenn = new Object();
-                $(data).find('#kolekcja-3 div').each(function(index, value) {
-                    kolekcjaData.hoenn["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.sinnoh = new Object();
-                $(data).find('#kolekcja-4 div').each(function(index, value) {
-                    kolekcjaData.sinnoh["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.unova = new Object();
-                $(data).find('#kolekcja-5 div').each(function(index, value) {
-                    kolekcjaData.unova["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-
-                kolekcjaData.kalos = new Object();
-                $(data).find('#kolekcja-6 div').each(function(index, value) {
-                    kolekcjaData.kalos["" + $(value).data('id-pokemona')] = $(value).hasClass('kolekcja-zlapane');
-                })
-                window.localStorage.kolekcjaDnia = JSON.stringify(kolekcjaData);
-                initPasek();
-            })
-        } else {
-            kolekcjaData = JSON.parse(window.localStorage.kolekcjaDnia);
-            initPasek();
-        }
-
-
-        function initPasek() {
-            $.each($('#pasek_skrotow li'), function(index, item) {
-                if ($(item).find('a').attr('href').includes("gra/dzicz")) {
-                    var url = $(item).find('a').attr('href').split('miejsce=')[1];
-                    var name = $(item).find('a').data('original-title').split('Wyprawa: ')[1];
-
-                    if (name == 'Miasto') {
-                        name = 'Opuszczone Miasto';
-                    }
-
-                    $(document).off('mouseenter', 'a[href="gra/dzicz.php?poluj&miejsce=' + url + '"]');
-                    $(document).on('mouseenter', 'a[href="gra/dzicz.php?poluj&miejsce=' + url + '"]', function() {
-                        var html = '<div class="row" id="opis' + name.replace(/[ ]/g, '') + '" style="z-index: 999; width: 600px; bottom: 90px; position: fixed; left: 0; right: 0; margin: 0 auto; background: #222; opacity: .9; color: white; padding: 15px">';
-                        var wszystkie = true;
-
-                        $.each(pokemonData, function(index, value) {
-                            if (jQuery.inArray(name, value.wystepowanie) != -1 && value.do_zlapania && kolekcjaData[value.region.toLowerCase()][value.id] == false) {
-                                wszystkie = false;
-                                var trudnoscNumber = 1;
-                                if (value.trudnosc_zlapania == "Niska") {
-                                    trudnoscNumber = 2;
-                                } else if (value.trudnosc_zlapania == "Średnia") {
-                                    trudnoscNumber = 3;
-                                } else if (value.trudnosc_zlapania == "Wysoka") {
-                                    trudnoscNumber = 4;
-                                } else if (value.trudnosc_zlapania == "Bardzo wysoka") {
-                                    trudnoscNumber = 5;
-                                } else if (value.trudnosc_zlapania == "Niemożliwa") {
-                                    trudnoscNumber = "x";
-                                }
-                                html = html + '<div class="col-xs-2" style="display: inline; float: left; padding: 0; margin-top: 5px; text-align: center;"><img style="margin-bottom: 5px; text-align: center; max-width: 80%;" src="https://gra.pokelife.pl/pokemony/niezdobyte/' + value.id + '.png"><p style="margin: 0; margin-top: 5px; margin-bottom: 5px">' + value.name + '</p><p><img src="/images/trudnosc/trudnosc' + trudnoscNumber + '.png" style="filter: grayscale(80%)"></p></div>';
-                            }
-                        })
-                        if (wszystkie) {
-                            html = html + "Udało ci się złapać wszystkie poki w tej dziczy";
-                        }
-                        html = html + '</div>';
-                        $('body').append(html);
-                    })
-
-
-                    $(document).on('mouseleave', 'a[href="gra/dzicz.php?poluj&miejsce=' + url + '"]', function() {
-                        $('#opis' + name.replace(/[ ]/g, '')).remove();
-                    })
-                }
-            });
-        }
-    }
-    initRozbudowanyOpisDziczy();
+   
 
 
 
@@ -3229,17 +2463,6 @@ data-zas="` + (1 * $(DATA).find('input[name="nazwa_full"][value="Białe Jagody"]
     //
     // **********************
 
-    function initSprawdzCzyMaszAktualnaWersjeBota() {
-        var url = domain + '/pokelife/api/get_bot_version.php';
-        $.getJSON(url, {
-            format: "json"
-        }).done(function(data) {
-            if (data != GM_info.script.version) {
-                $('body').append('<div id="botVersionAlertBox" style="position: fixed;width: 100%;height: 100%;background: rgb(22, 27, 29);z-index: 99999;top: 0px;display: block;"><h1 style="text-align: center; color: #ffffff; vertical-align: middle; font-size: 44px; top: 35%; position: relative;">Nieaktualna wersja bota<br> kliknij <a target="_self" href="https://github.com/krozum/pokelife/raw/master/PokeLifeScript.user.js?temp=' + Math.random() + '"><span style="color: #88e0d5; text-decoration: underline; ">tutaj</span></a> aby zaktualizować. <br>Odśwież strone po aktualizacji</h1></div>');
-            }
-        })
-    }
-    initSprawdzCzyMaszAktualnaWersjeBota();
 
 
 
