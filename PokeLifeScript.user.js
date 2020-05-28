@@ -109,6 +109,9 @@ function onReloadSidebar(fn) {
     window.onReloadSidebarFunctions.push(fn);
 }
 
+function updateStats(){
+return;}
+
 window.onReloadMainFunctions = [];
 
 function onReloadMain(fn) {
